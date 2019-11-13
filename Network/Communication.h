@@ -78,3 +78,13 @@ private:
 
   std::future<void> workerThread;
 };
+
+
+enum command {
+	INVALID,
+	SL,
+	STATUS,
+	QUIT
+};
+
+command resolve(std::string x);

@@ -5,9 +5,11 @@
 void server(unsigned short port);
 void client(const char *hostname, unsigned short port);
 
+using namespace std;
+
 void main(int argc, char *argv[])
 {
-  unsigned short serverPort = 8000;
+  unsigned short serverPort = 6666;
   const char *clientname = nullptr;
 
   // expect client to connect to as argument
@@ -41,8 +43,15 @@ public:
 
   virtual void DataReceived(const char *data, unsigned len)
   {
+	  string command = "";
+	  char* message = (char*)data;
+	  cout << "message is: " << message << std::endl;
+
+	 command = strtok(message, " ");
+	 cout << "command is: " << command << std::endl;
+
     // here we rely on the fact that the data is a string!
-    std::cout << "got new data >>" << data << "<< len " << len << std::endl;
+    cout << "got new data >>" << data << "<< len " << len << std::endl;
   }
 };
 
@@ -80,16 +89,25 @@ void client(const char *hostname, unsigned short port)
   std::shared_ptr<CommCallbacks> myCallbackHandler(new CallbackHandler());
   Communication myComm(myCallbackHandler);
 
+  std::cout << "Willcommen! \nDie Befehle bitte klein schreiben!" << std::endl;
+
+  char inputstr[100];
+
+ while (strcmp(inputstr, "connect")) {
+	  std::cout << "Not connected! "<< std::endl;
+	  memset(inputstr, 0, sizeof(inputstr));
+	  std::cin >> inputstr;
+  }
+
+
   bool res = myComm.Connect(hostname, port);
 
   std::cout << "client started for server " << hostname << " at port " << port << "result " << res << std::endl;
   if (res)
   {
-    char inputstr[100];
-
     do {
-      memset(inputstr, 0, sizeof(inputstr));
-      std::cin >> inputstr;
+		memset(inputstr, 0, sizeof(inputstr));
+		std::cin >> inputstr;
 
       std::cout << "sending >>" << inputstr << std::endl;
 

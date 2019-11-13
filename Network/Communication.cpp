@@ -4,11 +4,12 @@
 #include <memory>
 #include <iostream>
 
+using namespace std;
+
 void WorkThreadWrapper(Communication *ptr)
 {
   ptr->workFunc();
 }
-
 
 Communication::Communication(std::shared_ptr<CommCallbacks> cb) : m_cb(cb)
 {
@@ -221,5 +222,18 @@ void Communication::workFunc()
       this->workProc();
     }
   }
+}
+
+command resolve(string x) {
+	if(x == "SL"){
+		return SL;
+	}
+	if (x == "STATUS") {
+		return STATUS;
+	}
+	if (x == "QUIT") {
+		return QUIT;
+	}
+	return INVALID;
 }
 
