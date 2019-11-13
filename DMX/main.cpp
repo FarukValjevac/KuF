@@ -14,6 +14,7 @@ int main()
 
   int values[8];
 
+
   for (int i= 0; i < 255; ++i)
   {
 	values[0] = 1;
