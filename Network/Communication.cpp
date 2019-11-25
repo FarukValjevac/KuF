@@ -3,6 +3,7 @@
 #include <future>
 #include <memory>
 #include <iostream>
+#include <string>
 
 using namespace std;
 
@@ -123,6 +124,9 @@ bool Communication::ProcessMessage()
       if (tel.m_flag == NEWCONNECTION)
       {
         m_cb->NewConnectionCB(tel.m_msg.c_str());
+		if (IsServer()) {
+			WriteToPartner(WELCOMEMESSAGE, 0);
+		}
       }
       else if (tel.m_flag == CONNECTIONLOST)
       {
@@ -131,6 +135,42 @@ bool Communication::ProcessMessage()
       else
       {
         m_cb->DataReceived(tel.m_msg.c_str(), tel.m_msg.length());
+		if (IsServer()) {
+			//process the new Data
+			string message = tel.m_msg.c_str();
+			//delete the $ from the message
+			if (message.back() != '$') {
+				WriteToPartner(message.append("\nMissing end of command sign ($)").c_str(), 0);
+				return true;
+			}
+			message.pop_back();
+
+			string command = "";
+			char* pMessage = (char*)tel.m_msg.c_str();
+			cout << "message is: " << message << std::endl;
+
+			command = strtok(pMessage, " ");
+			cout << "command is: " << command << std::endl;
+
+			switch (resolve(command)) {
+			case SL:
+				WriteToPartner(message.append(" #103$").c_str(), 0);
+				break;
+			case STATUS:
+				WriteToPartner(message.append(" #104$").c_str(), 0);
+				break;
+			case QUIT:
+				WriteToPartner(message.append(" #199$").c_str(), 0);
+				break;
+			default:
+				WriteToPartner(message.append(" #211$").c_str(), 0);
+				break;
+			}
+
+		}
+		else {
+			cout << "Answer of Server is: " << tel.m_msg << std::endl;
+		}
       }
     }
   } while (tel.m_flag != EMPTY);
@@ -155,7 +195,9 @@ void Communication::telegramCB(const char *buf, unsigned len)
   {
     std::lock_guard<std::mutex> guard(m_telegramListMutex);
     m_telegramList_In.push_back(tel);
+	
   }
+  ProcessMessage();
 }
 
 void Communication::newConnectCB(const char *hostname, unsigned short port)
@@ -173,6 +215,7 @@ void Communication::newConnectCB(const char *hostname, unsigned short port)
     std::lock_guard<std::mutex> guard(m_telegramListMutex);
     m_telegramList_In.push_back(tel);
   }
+  ProcessMessage();
 }
 
 void Communication::connectLostCB() 
@@ -187,6 +230,7 @@ void Communication::connectLostCB()
     std::lock_guard<std::mutex> guard(m_telegramListMutex);
     m_telegramList_In.push_back(tel);
   }
+  ProcessMessage();
 }
 
 void Communication::workFunc() 

@@ -38,20 +38,20 @@ public:
 
   virtual void ConnectionLost()
   {
-    std::cout << "connection lost" << std::endl;
+    //std::cout << "connection lost" << std::endl;
   }
 
   virtual void DataReceived(const char *data, unsigned len)
   {
-	  string command = "";
-	  char* message = (char*)data;
-	  cout << "message is: " << message << std::endl;
+	 // string command = "";
+	 // char* message = (char*)data;
+	 // cout << "message is: " << message << std::endl;
 
-	 command = strtok(message, " ");
-	 cout << "command is: " << command << std::endl;
+	 //command = strtok(message, " ");
+	 //cout << "command is: " << command << std::endl;
 
-    // here we rely on the fact that the data is a string!
-    cout << "got new data >>" << data << "<< len " << len << std::endl;
+  //  // here we rely on the fact that the data is a string!
+  //  cout << "got new data >>" << data << "<< len " << len << std::endl;
   }
 };
 
@@ -69,15 +69,10 @@ void server(unsigned short port)
   char inputstr[100];
 
   do {
-    memset(inputstr, 0, sizeof(inputstr));
-    std::cin >> inputstr;
+	  while (myComm.ProcessMessage()) {
 
-    std::cout << "sending >>" << inputstr << std::endl;
-
-    myComm.WriteToPartner(inputstr, strlen(inputstr) + 1);
-
-    myComm.ProcessMessage();
-    myComm.ProcessMessage();
+	  }
+ 
 
   } while (strcmp(inputstr, "ENDE"));
 
@@ -96,8 +91,8 @@ void client(const char *hostname, unsigned short port)
  while (strcmp(inputstr, "connect")) {
 	  std::cout << "Not connected! "<< std::endl;
 	  memset(inputstr, 0, sizeof(inputstr));
-	  std::cin >> inputstr;
-  }
+	  std::cin.getline(inputstr, 100);
+ }
 
 
   bool res = myComm.Connect(hostname, port);
@@ -107,7 +102,7 @@ void client(const char *hostname, unsigned short port)
   {
     do {
 		memset(inputstr, 0, sizeof(inputstr));
-		std::cin >> inputstr;
+		std::cin.getline(inputstr,100);
 
       std::cout << "sending >>" << inputstr << std::endl;
 

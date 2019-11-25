@@ -22,6 +22,8 @@ public:
 
 // ------------------------------------------------------
 
+#undef SHOWMESSAGE
+#define WELCOMEMESSAGE "DMX-Remote for Spotlights.\nCurrent Version is 1.0.\nChoose your SL #101$"
 // special cases coded in message
 #define NEWCONNECTION (unsigned(-1))
 #define CONNECTIONLOST (unsigned(-2))
