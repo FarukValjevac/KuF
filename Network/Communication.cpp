@@ -4,6 +4,7 @@
 #include <memory>
 #include <iostream>
 #include <string>
+#include <exception>
 
 using namespace std;
 
@@ -14,6 +15,11 @@ void WorkThreadWrapper(Communication *ptr)
 
 Communication::Communication(std::shared_ptr<CommCallbacks> cb) : m_cb(cb)
 {
+	for (int i = 1; i <= 4; i++) {
+		DMXSpotlight sl(i);
+		SLList.push_back(sl);
+	}
+	
   OS_comm_startup();
 }
 
@@ -149,13 +155,50 @@ bool Communication::ProcessMessage()
 			char* pMessage = (char*)tel.m_msg.c_str();
 			cout << "message is: " << message << std::endl;
 
-			command = strtok(pMessage, " ");
+			command = strtok(pMessage, " $");
 			cout << "command is: " << command << std::endl;
 
 			switch (resolve(command)) {
-			case SL:
-				WriteToPartner(message.append(" #103$").c_str(), 0);
+			case SL: {
+				//check if the parameters are valid
+				try {
+					string str_number = strtok(NULL, " ");
+					int number = stoi(str_number);
+					if (0 < number && number < 5) {
+						string rgb = strtok(NULL, " ");
+						int r = stoi(rgb);
+
+						if (0 <= r && r <= 255) {
+							rgb = strtok(NULL, " ");
+							int g = stoi(rgb);
+
+							if (0 <= g && g <= 255) {
+								rgb = strtok(NULL, " ");
+								int b = stoi(rgb);
+
+								if (0 <= g && g <= 255) {
+									string str_brt = strtok(NULL, "$");
+									int brt = stoi(str_brt);
+
+									if (0 <= brt && brt <= 100) {
+										//TODO write parameters into DMX class
+										executeCMD(number, r, g, b, brt);
+										WriteToPartner(message.append(" #103$").c_str(), 0);
+
+										break;
+									}
+								}
+							}
+						}
+					}
+				}
+				catch(exception& e){
+					cout << e.what() << endl;
+
+				}
+				WriteToPartner(message.append(" #212$").c_str(), 0);
 				break;
+			}
 			case STATUS:
 				WriteToPartner(message.append(" #104$").c_str(), 0);
 				break;
@@ -268,6 +311,10 @@ void Communication::workFunc()
   }
 }
 
+void Communication::executeCMD(int nbr, int r, int g, int b, int brt) {
+	SLList[nbr].setSLValues(r, g, b, brt);
+}
+
 command resolve(string x) {
 	if(x == "SL"){
 		return SL;
@@ -281,3 +328,26 @@ command resolve(string x) {
 	return INVALID;
 }
 
+DMXSpotlight::DMXSpotlight(int nbr) {
+	SLNumber = nbr;
+	red = 255;
+	green = 255;
+	blue = 255;
+	brightness = 50;
+	selected = false;
+}
+
+DMXSpotlight::~DMXSpotlight() {
+
+}
+
+void DMXSpotlight::setSLValues(int r, int g, int b, int brt) {
+	red = r;
+	green = g;
+	blue = b;
+	brightness = brt;
+	if (selected == false) {
+		selected = true;
+	}
+
+}

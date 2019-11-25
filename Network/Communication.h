@@ -6,6 +6,7 @@
 #include <future>
 
 #include <list>
+#include <vector>
 #include <string>
 
 #include "TCPLayer.h"
@@ -18,6 +19,23 @@ public:
   virtual void ConnectionLost() = 0;
 
   virtual void DataReceived(const char *data, unsigned len) = 0;
+};
+
+class DMXSpotlight
+{
+public:
+	DMXSpotlight(int nbr);
+	~DMXSpotlight();
+
+	void setSLValues(int r, int g, int b, int brt);
+
+private:
+	int SLNumber;
+	int red;
+	int green;
+	int blue;
+	int brightness;
+	bool selected;
 };
 
 // ------------------------------------------------------
@@ -59,6 +77,8 @@ public:
 
   void workFunc();
 
+  void executeCMD(int nbr, int r, int g, int b, int brt);
+
 protected:
   // telegram received - buffer belongs to layer 1
   virtual void telegramCB(const char *buf, unsigned len);
@@ -79,7 +99,12 @@ private:
   std::mutex m_telegramListMutex;
 
   std::future<void> workerThread;
+
+  std::vector<DMXSpotlight> SLList;
+
 };
+
+
 
 
 enum command {
