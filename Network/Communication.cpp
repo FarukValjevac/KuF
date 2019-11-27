@@ -144,6 +144,10 @@ bool Communication::ProcessMessage()
 		if (IsServer()) {
 			//process the new Data
 			string message = tel.m_msg.c_str();
+			if (message.empty()) {
+				WriteToPartner("No command received", 0);
+				return true;
+			}
 			//delete the $ from the message
 			if (message.back() != '$') {
 				WriteToPartner(message.append("\nMissing end of command sign ($)").c_str(), 0);
@@ -176,12 +180,13 @@ bool Communication::ProcessMessage()
 								rgb = strtok(NULL, " ");
 								int b = stoi(rgb);
 
-								if (0 <= g && g <= 255) {
+								if (0 <= b && b <= 255) {
 									string str_brt = strtok(NULL, "$");
 									int brt = stoi(str_brt);
 
 									if (0 <= brt && brt <= 100) {
 										//write parameters into DMX class
+										cout << number << r << g << b << brt << endl;
 										executeCMD(number, r, g, b, brt);
 										//activate all selected spotlights
 										processCMD();
@@ -194,16 +199,19 @@ bool Communication::ProcessMessage()
 						}
 					}
 				}
-				catch(exception& e){
+				catch (exception & e) {
 					cout << e.what() << endl;
 
 				}
 				WriteToPartner(message.append(" #212$").c_str(), 0);
 				break;
 			}
-			case STATUS:
-				WriteToPartner(message.append(" #104$").c_str(), 0);
-				break;
+			case STATUS: {
+					   string status = getStatus();
+					   WriteToPartner(message.append(" #104$").c_str(), 0);
+					   WriteToPartner(status.c_str(), 0);
+					   break;
+			}
 			case QUIT:
 				WriteToPartner(message.append(" #199$").c_str(), 0);
 				break;
@@ -314,7 +322,7 @@ void Communication::workFunc()
 }
 
 void Communication::executeCMD(int nbr, int r, int g, int b, int brt) {
-	SLList[nbr].setSLValues(r, g, b, brt);
+	SLList[nbr-1].setSLValues(r, g, b, brt);
 }
 
 void Communication::processCMD() {
@@ -323,23 +331,46 @@ void Communication::processCMD() {
 		if (this->SLList[i].selected == false) {
 			continue;
 		}
-		channels[0] = 1 + i * 48;
-		channels[1] = SLList[i].brightness;
-		channels[2] = 3 + i * 48;
+		channels[0] = 1 + i * 24;
+		channels[1] = (uint8_t)(SLList[i].brightness * 2.25);
+		channels[2] = 3 + i * 24;
 		channels[3] = SLList[i].red;
-		channels[4] = 4 + i * 48;
+		channels[4] = 4 + i * 24;
 		channels[5] = SLList[i].green;
-		channels[6] = 5 + i * 48;
+		channels[6] = 5 + i * 24;
 		channels[7] = SLList[i].blue;
 
 		if (!myDll.SetChannelValue(channels, 4)) {
 			cerr << "error setting values" << endl;
 		}
+		Sleep(10);
+
 	}
+}
+
+
+const char* Communication::getStatus() {
+	string status = "";
+	char buf[300] = "Hallo";
+	for (int i = 0; i < 4; i++) {
+		if (this->SLList[i].selected == false) {
+			continue;
+		}
+		snprintf(buf, sizeof(buf),"Spotlight %d color %d %d %d brightness %d\n",  SLList[i].SLNumber, SLList[i].red, SLList[i].green, SLList[i].blue, SLList[i].brightness);
+		string buf1 = buf;
+		status.append(buf1);
+		
+	}
+	if (status.empty()) {
+		return "No Spotlights are selected";
+	}
+	const char* ergebnis = status.c_str();
+	return  ergebnis;
 }
 
 void Communication::DLLInit() {
 	myDll.Init();
+	//cout << myDll.GetMaxChannels() << endl;
 }
 
 command resolve(string x) {

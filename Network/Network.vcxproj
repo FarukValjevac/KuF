@@ -116,14 +116,20 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Communication.cpp" />
+    <ClCompile Include="DmxDllAccess.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="OS_depend.cpp" />
     <ClCompile Include="TCPLayer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Communication.h" />
+    <ClInclude Include="DmxDllAccess.h" />
     <ClInclude Include="OS_depend.h" />
     <ClInclude Include="TCPLayer.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="DMX510.DLL" />
+    <None Include="MPUSBAPI.DLL" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

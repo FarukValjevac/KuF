@@ -27,6 +27,9 @@
     <ClCompile Include="Communication.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DmxDllAccess.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TCPLayer.h">
@@ -38,5 +41,16 @@
     <ClInclude Include="Communication.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DmxDllAccess.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="DMX510.DLL">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="MPUSBAPI.DLL">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

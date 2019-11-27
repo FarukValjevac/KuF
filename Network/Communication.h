@@ -80,6 +80,8 @@ public:
   void executeCMD(int nbr, int r, int g, int b, int brt);
   void processCMD();
 
+  const char* getStatus();
+
 protected:
   // telegram received - buffer belongs to layer 1
   virtual void telegramCB(const char *buf, unsigned len);
