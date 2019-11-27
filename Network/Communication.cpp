@@ -207,9 +207,9 @@ bool Communication::ProcessMessage()
 				break;
 			}
 			case STATUS: {
-					   string status = getStatus();
+					   string str_status = getStatus();
 					   WriteToPartner(message.append(" #104$").c_str(), 0);
-					   WriteToPartner(status.c_str(), 0);
+					   WriteToPartner(str_status.c_str(), 0);
 					   break;
 			}
 			case QUIT:
@@ -350,7 +350,6 @@ void Communication::processCMD() {
 
 
 const char* Communication::getStatus() {
-	string status = "";
 	char buf[300] = "Hallo";
 	for (int i = 0; i < 4; i++) {
 		if (this->SLList[i].selected == false) {
@@ -361,11 +360,10 @@ const char* Communication::getStatus() {
 		status.append(buf1);
 		
 	}
-	if (status.empty()) {
+	if (status == "STATUS: \n") {
 		return "No Spotlights are selected";
 	}
-	const char* ergebnis = status.c_str();
-	return  ergebnis;
+	return status.c_str() ;
 }
 
 void Communication::DLLInit() {

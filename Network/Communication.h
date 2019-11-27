@@ -82,6 +82,8 @@ public:
 
   const char* getStatus();
 
+  std::string status = "STATUS: \n";
+
 protected:
   // telegram received - buffer belongs to layer 1
   virtual void telegramCB(const char *buf, unsigned len);
