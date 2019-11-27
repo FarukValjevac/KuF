@@ -181,8 +181,10 @@ bool Communication::ProcessMessage()
 									int brt = stoi(str_brt);
 
 									if (0 <= brt && brt <= 100) {
-										//TODO write parameters into DMX class
+										//write parameters into DMX class
 										executeCMD(number, r, g, b, brt);
+										//activate all selected spotlights
+										processCMD();
 										WriteToPartner(message.append(" #103$").c_str(), 0);
 
 										break;
@@ -315,6 +317,31 @@ void Communication::executeCMD(int nbr, int r, int g, int b, int brt) {
 	SLList[nbr].setSLValues(r, g, b, brt);
 }
 
+void Communication::processCMD() {
+	int channels[48];
+	for (int i = 0; i < 4; i++) {
+		if (this->SLList[i].selected == false) {
+			continue;
+		}
+		channels[0] = 1 + i * 48;
+		channels[1] = SLList[i].brightness;
+		channels[2] = 3 + i * 48;
+		channels[3] = SLList[i].red;
+		channels[4] = 4 + i * 48;
+		channels[5] = SLList[i].green;
+		channels[6] = 5 + i * 48;
+		channels[7] = SLList[i].blue;
+
+		if (!myDll.SetChannelValue(channels, 4)) {
+			cerr << "error setting values" << endl;
+		}
+	}
+}
+
+void Communication::DLLInit() {
+	myDll.Init();
+}
+
 command resolve(string x) {
 	if(x == "SL"){
 		return SL;
@@ -349,5 +376,4 @@ void DMXSpotlight::setSLValues(int r, int g, int b, int brt) {
 	if (selected == false) {
 		selected = true;
 	}
-
 }

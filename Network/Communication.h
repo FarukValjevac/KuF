@@ -10,6 +10,7 @@
 #include <string>
 
 #include "TCPLayer.h"
+#include "DmxDllAccess.h"
 
 class CommCallbacks
 {
@@ -28,8 +29,6 @@ public:
 	~DMXSpotlight();
 
 	void setSLValues(int r, int g, int b, int brt);
-
-private:
 	int SLNumber;
 	int red;
 	int green;
@@ -76,8 +75,10 @@ public:
   bool ProcessMessage();
 
   void workFunc();
+  void DLLInit();
 
   void executeCMD(int nbr, int r, int g, int b, int brt);
+  void processCMD();
 
 protected:
   // telegram received - buffer belongs to layer 1
@@ -101,6 +102,8 @@ private:
   std::future<void> workerThread;
 
   std::vector<DMXSpotlight> SLList;
+
+  DmxDllAccess myDll;
 
 };
 

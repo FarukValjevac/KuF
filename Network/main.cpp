@@ -68,6 +68,8 @@ void server(unsigned short port)
 
   char inputstr[100];
 
+  myComm.DLLInit();
+
   do {
 	  while (myComm.ProcessMessage()) {
 
