@@ -53,13 +53,18 @@ class TCPLayer
     // set PartnerSock blocking mode
     bool setBlocking(bool doBlock);
 
+	SOCKET getPartnerSocket();
+
+	std::string name;
+	bool writeToClient(const char* buf, unsigned len);
+
   protected:
 
     SOCKET makeTCPSocket(unsigned short int port);
     bool TCPConnect();
 
     void readFromClient();
-    bool writeToClient(const char *buf, unsigned len);
+
     
   private:
     unsigned short s_port;

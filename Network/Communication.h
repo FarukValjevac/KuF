@@ -8,9 +8,11 @@
 #include <list>
 #include <vector>
 #include <string>
+#include <time.h>
 
 #include "TCPLayer.h"
 #include "DmxDllAccess.h"
+
 
 class CommCallbacks
 {
@@ -56,7 +58,7 @@ struct Telegram
   unsigned m_flag;
 };
 
-class Communication : private TCPLayer
+class Communication : public TCPLayer
 {
 public:
   Communication(std::shared_ptr<CommCallbacks> cb);
@@ -81,8 +83,10 @@ public:
   void processCMD();
 
   const char* getStatus();
+  bool getRunningStatus();
 
   std::string status = "STATUS: \n";
+  time_t timeout = NULL;
 
 protected:
   // telegram received - buffer belongs to layer 1

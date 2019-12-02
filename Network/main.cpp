@@ -1,4 +1,5 @@
 #include <iostream>
+#include <time.h>
 
 #include "Communication.h"
 
@@ -6,6 +7,8 @@ void server(unsigned short port);
 void client(const char *hostname, unsigned short port);
 
 using namespace std;
+
+#define TIMEOUTMINUTES 5
 
 void main(int argc, char *argv[])
 {
@@ -38,7 +41,7 @@ public:
 
   virtual void ConnectionLost()
   {
-    //std::cout << "connection lost" << std::endl;
+    std::cout << "connection lost - type anything to continue..." << std::endl;
   }
 
   virtual void DataReceived(const char *data, unsigned len)
@@ -61,12 +64,11 @@ void server(unsigned short port)
 {
   std::shared_ptr<CommCallbacks> myCallbackHandler(new CallbackHandler());
   Communication myComm(myCallbackHandler);
+  myComm.name = "server";
 
   myComm.Activate(port);
 
   std::cout << "server started at port " << port << std::endl;
-
-  char inputstr[100];
 
   myComm.DLLInit();
 
@@ -75,8 +77,15 @@ void server(unsigned short port)
 
 	  }
  
+	  if (myComm.timeout != NULL) {
+		  //cout << "timeout: " << time(0) - myComm.timeout << endl;
+		  if ((time(0) - myComm.timeout) >= 60 * TIMEOUTMINUTES) {
+			  myComm.writeToClient("Time is up, disconnecting!$", 28);
+			  myComm.forceDisconnect(myComm.getPartnerSocket());
+		  }
+	  }
 
-  } while (strcmp(inputstr, "ENDE"));
+  } while (myComm.getRunningStatus());
 
   myComm.Deactivate();
 }
@@ -85,36 +94,53 @@ void client(const char *hostname, unsigned short port)
 {
   std::shared_ptr<CommCallbacks> myCallbackHandler(new CallbackHandler());
   Communication myComm(myCallbackHandler);
+  myComm.name = "client";
 
-  std::cout << "Willcommen! \nDie Befehle bitte klein schreiben!" << std::endl;
+  std::cout << "Welcome! \nType connect to start and disconnect to finish." << std::endl;
 
   char inputstr[100];
 
- while (strcmp(inputstr, "connect")) {
-	  std::cout << "Not connected! "<< std::endl;
+  while (1) {
 	  memset(inputstr, 0, sizeof(inputstr));
-	  std::cin.getline(inputstr, 100);
- }
+	  while (strcmp(inputstr, "connect")) {
+		  std::cout << "Not connected! " << std::endl;
+		  memset(inputstr, 0, sizeof(inputstr));
+		  std::cin.getline(inputstr, 100);
+		  if (!strcmp(inputstr, "ENDE")) {
+			  myComm.Deactivate();
+			  return;
+		  }
+	  }
 
 
-  bool res = myComm.Connect(hostname, port);
+	  bool res = myComm.Connect(hostname, port);
 
-  std::cout << "client started for server " << hostname << " at port " << port << "result " << res << std::endl;
-  if (res)
-  {
-    do {
-		memset(inputstr, 0, sizeof(inputstr));
-		std::cin.getline(inputstr,100);
+	  std::cout << "client started for server " << hostname << " at port " << port << "result " << res << std::endl;
+	  if (res)
+	  {
+		  do {
+			  if (!myComm.IsConnected()) {
+				  break;
+			  }
+			  memset(inputstr, 0, sizeof(inputstr));
+			  std::cin.getline(inputstr, 100);
 
-      std::cout << "sending >>" << inputstr << std::endl;
+			  std::cout << "sending \n>> " << inputstr << std::endl;
 
-      myComm.WriteToPartner(inputstr, strlen(inputstr) + 1);
+			  myComm.WriteToPartner(inputstr, strlen(inputstr) + 1);
 
-      myComm.ProcessMessage();
-      myComm.ProcessMessage();
+			  myComm.ProcessMessage();
+			  if (!strcmp(inputstr, "ENDE")) {
+				  myComm.Deactivate();
+				  return;
+			  }
 
-    } while (strcmp(inputstr, "ENDE"));
+
+		  } while (strcmp(inputstr, "disconnect"));
+		  res = myComm.Disconnect();
+		  std::cout << "client disconnected from server " << hostname << " at port " << port << " result " << res << std::endl;
+	  }
   }
-  myComm.Disconnect();
+  myComm.Deactivate();
 }
 

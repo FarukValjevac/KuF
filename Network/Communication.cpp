@@ -58,6 +58,9 @@ bool Communication::Connect(const char *host, unsigned short port)
 
   bool res = this->activate();
 
+  if (res == false) {
+	  return res;
+  }
   // start worker
   keepRunning = true;
   workerThread = std::async(WorkThreadWrapper, this);
@@ -133,15 +136,19 @@ bool Communication::ProcessMessage()
 		if (IsServer()) {
 			WriteToPartner(WELCOMEMESSAGE, 0);
 		}
+		// start the timer for a timeout
+		timeout = time(0);
       }
       else if (tel.m_flag == CONNECTIONLOST)
       {
         m_cb->ConnectionLost();
+		timeout = NULL;
       }
       else
       {
         m_cb->DataReceived(tel.m_msg.c_str(), tel.m_msg.length());
 		if (IsServer()) {
+			timeout = time(0);
 			//process the new Data
 			string message = tel.m_msg.c_str();
 			if (message.empty()) {
@@ -166,23 +173,56 @@ bool Communication::ProcessMessage()
 			case SL: {
 				//check if the parameters are valid
 				try {
-					string str_number = strtok(NULL, " ");
-					int number = stoi(str_number);
+					char* tmp = strtok(NULL, " ");
+					int number;
+					if (tmp == NULL) {
+						number = -1;
+					}
+					else {
+						string str_number = tmp;
+						number = stoi(str_number);
+					}
 					if (0 < number && number < 5) {
-						string rgb = strtok(NULL, " ");
-						int r = stoi(rgb);
+						string rgb;
+						int r,g, b, brt;
+						tmp = strtok(NULL, " ");
+						if (tmp == NULL) {
+							r = -1;
+						}
+						else {
+							rgb = tmp;
+							r = stoi(rgb);
+						}
 
 						if (0 <= r && r <= 255) {
-							rgb = strtok(NULL, " ");
-							int g = stoi(rgb);
+							tmp = strtok(NULL, " ");
+							if (tmp == NULL) {
+								g = -1;
+							}
+							else {
+								rgb = tmp;
+								g = stoi(rgb);
+							}
 
 							if (0 <= g && g <= 255) {
-								rgb = strtok(NULL, " ");
-								int b = stoi(rgb);
+								tmp = strtok(NULL, " ");
+								if (tmp == NULL) {
+									b = -1;
+								}
+								else {
+									rgb = tmp;
+									b = stoi(rgb);
+								}
 
 								if (0 <= b && b <= 255) {
-									string str_brt = strtok(NULL, "$");
-									int brt = stoi(str_brt);
+									tmp = strtok(NULL, " ");
+									if (tmp == NULL) {
+										brt = -1;
+									}
+									else {
+										rgb = tmp;
+										brt = stoi(rgb);
+									}
 
 									if (0 <= brt && brt <= 100) {
 										//write parameters into DMX class
@@ -212,9 +252,17 @@ bool Communication::ProcessMessage()
 					   WriteToPartner(str_status.c_str(), 0);
 					   break;
 			}
-			case QUIT:
-				WriteToPartner(message.append(" #199$").c_str(), 0);
+			case QUIT: {
+				SLList.clear();
+				for (int i = 1; i <= 4; i++) {
+					DMXSpotlight sl(i);
+					SLList.push_back(sl);
+				}
+				this->writeToClient(message.append(" #199$").c_str(), strlen(message.append(" #199$").c_str())+1);
+				this->forceDisconnect(getPartnerSocket());
+				timeout = NULL;
 				break;
+			}
 			default:
 				WriteToPartner(message.append(" #211$").c_str(), 0);
 				break;
@@ -222,7 +270,7 @@ bool Communication::ProcessMessage()
 
 		}
 		else {
-			cout << "Answer of Server is: " << tel.m_msg << std::endl;
+			cout << "Answer of Server is \n<< " << tel.m_msg << std::endl;
 		}
       }
     }
@@ -361,7 +409,7 @@ const char* Communication::getStatus() {
 		
 	}
 	if (status == "STATUS: \n") {
-		return "No Spotlights are selected";
+		return "STATUS: \nNo Spotlights are selected";
 	}
 	return status.c_str() ;
 }
@@ -405,4 +453,8 @@ void DMXSpotlight::setSLValues(int r, int g, int b, int brt) {
 	if (selected == false) {
 		selected = true;
 	}
+}
+
+bool Communication::getRunningStatus() {
+	return this->keepRunning;
 }

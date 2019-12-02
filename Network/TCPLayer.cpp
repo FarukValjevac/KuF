@@ -173,8 +173,12 @@ bool TCPLayer::forceDisconnect(SOCKET sock)
 
             connectLostCB();
 
+			
+
             // restart server
-            activate();
+			if (name == "server") {
+				activate();
+			}
 
             return true;
         }
@@ -445,7 +449,7 @@ bool TCPLayer::TCPConnect()
         }
         else
         {
-          std::cout << "cannot connect to host " << TCPHost << " socket " << s_port << std::endl;
+          std::cout << "cannot connect to host " << TCPHost << " socket " << s_port << " error: " << error << std::endl;
             OS_closeSocket(PartnerSock);
             PartnerSock = INVALID_SOCKET;
             return false;
@@ -539,4 +543,8 @@ bool TCPLayer::setBlocking(bool doBlock)
   }
   else
     return false;
+}
+
+SOCKET TCPLayer::getPartnerSocket() {
+	return PartnerSock;
 }
