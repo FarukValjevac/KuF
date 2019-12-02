@@ -134,7 +134,15 @@ bool Communication::ProcessMessage()
       {
         m_cb->NewConnectionCB(tel.m_msg.c_str());
 		if (IsServer()) {
-			WriteToPartner(WELCOMEMESSAGE, 0);
+			if (client_connection == false) {
+				WriteToPartner(WELCOMEMESSAGE, 0);
+				client_connection = true;
+			}
+			else {
+				string str_status = getStatus();
+				WriteToPartner("Connection reestablished!\n", 0);
+				WriteToPartner(str_status.c_str(), 0);
+			}
 		}
 		// start the timer for a timeout
 		timeout = time(0);
@@ -184,10 +192,14 @@ bool Communication::ProcessMessage()
 					}
 					if (0 < number && number < 5) {
 						string rgb;
-						int r,g, b, brt;
+						int r, g, b, brt;
 						tmp = strtok(NULL, " ");
 						if (tmp == NULL) {
 							r = -1;
+							SLList[number-1].selected = true;
+							processCMD();
+							WriteToPartner(message.append(" #103$").c_str(), 0);
+							break;
 						}
 						else {
 							rgb = tmp;
@@ -246,6 +258,36 @@ bool Communication::ProcessMessage()
 				WriteToPartner(message.append(" #212$").c_str(), 0);
 				break;
 			}
+			case SLOFF: {
+				try {
+					char* tmp = strtok(NULL, " ");
+					int number;
+					if (tmp == NULL) {
+						number = -1;
+					}
+					else {
+						string str_number = tmp;
+						number = stoi(str_number);
+					}
+					if (0 < number && number < 5) {
+						tmp = strtok(NULL, " ");
+						if (tmp != NULL) {
+							WriteToPartner(message.append(" #212$").c_str(), 0);
+							break;
+						}
+						SLList[number-1].selected = false;
+						processCMD();
+						WriteToPartner(message.append(" #103$").c_str(), 0);
+						break;
+					}
+				}
+				catch (exception & e) {
+					cout << e.what() << endl;
+
+				}					
+				WriteToPartner(message.append(" #212$").c_str(), 0);
+				break;
+			}
 			case STATUS: {
 					   string str_status = getStatus();
 					   WriteToPartner(message.append(" #104$").c_str(), 0);
@@ -253,13 +295,10 @@ bool Communication::ProcessMessage()
 					   break;
 			}
 			case QUIT: {
-				SLList.clear();
-				for (int i = 1; i <= 4; i++) {
-					DMXSpotlight sl(i);
-					SLList.push_back(sl);
-				}
+				resetSL();
 				this->writeToClient(message.append(" #199$").c_str(), strlen(message.append(" #199$").c_str())+1);
 				this->forceDisconnect(getPartnerSocket());
+				client_connection = false;
 				timeout = NULL;
 				break;
 			}
@@ -411,7 +450,9 @@ const char* Communication::getStatus() {
 	if (status == "STATUS: \n") {
 		return "STATUS: \nNo Spotlights are selected";
 	}
-	return status.c_str() ;
+	ret_status = status;
+	status = "STATUS: \n";
+	return ret_status.c_str() ;
 }
 
 void Communication::DLLInit() {
@@ -422,6 +463,9 @@ void Communication::DLLInit() {
 command resolve(string x) {
 	if(x == "SL"){
 		return SL;
+	}
+	if (x == "SLOFF") {
+		return SLOFF;
 	}
 	if (x == "STATUS") {
 		return STATUS;
@@ -457,4 +501,12 @@ void DMXSpotlight::setSLValues(int r, int g, int b, int brt) {
 
 bool Communication::getRunningStatus() {
 	return this->keepRunning;
+}
+
+void Communication::resetSL() {
+	SLList.clear();
+	for (int i = 1; i <= 4; i++) {
+		DMXSpotlight sl(i);
+		SLList.push_back(sl);
+	}
 }

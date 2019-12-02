@@ -82,6 +82,8 @@ void server(unsigned short port)
 		  if ((time(0) - myComm.timeout) >= 60 * TIMEOUTMINUTES) {
 			  myComm.writeToClient("Time is up, disconnecting!$", 28);
 			  myComm.forceDisconnect(myComm.getPartnerSocket());
+			  myComm.resetSL();
+			  myComm.client_connection = false;
 		  }
 	  }
 
@@ -96,7 +98,7 @@ void client(const char *hostname, unsigned short port)
   Communication myComm(myCallbackHandler);
   myComm.name = "client";
 
-  std::cout << "Welcome! \nType connect to start and disconnect to finish." << std::endl;
+  std::cout << "Welcome! \nType connect to start and disconnect to finish.\nType ENDE to close the program." << std::endl;
 
   char inputstr[100];
 
@@ -125,7 +127,13 @@ void client(const char *hostname, unsigned short port)
 			  memset(inputstr, 0, sizeof(inputstr));
 			  std::cin.getline(inputstr, 100);
 
-			  std::cout << "sending \n>> " << inputstr << std::endl;
+			  if (!strcmp(inputstr, "disconnect")) {
+				  break;
+			  }
+
+			  if (myComm.IsConnected()) {
+				  std::cout << "sending \n>> " << inputstr << std::endl;
+			  }
 
 			  myComm.WriteToPartner(inputstr, strlen(inputstr) + 1);
 
@@ -136,7 +144,7 @@ void client(const char *hostname, unsigned short port)
 			  }
 
 
-		  } while (strcmp(inputstr, "disconnect"));
+		  } while (1);
 		  res = myComm.Disconnect();
 		  std::cout << "client disconnected from server " << hostname << " at port " << port << " result " << res << std::endl;
 	  }

@@ -81,12 +81,16 @@ public:
 
   void executeCMD(int nbr, int r, int g, int b, int brt);
   void processCMD();
+  void resetSL();
 
   const char* getStatus();
   bool getRunningStatus();
 
   std::string status = "STATUS: \n";
+  std::string ret_status = "";
   time_t timeout = NULL;
+  bool client_connection = false;
+
 
 protected:
   // telegram received - buffer belongs to layer 1
@@ -121,6 +125,7 @@ private:
 enum command {
 	INVALID,
 	SL,
+	SLOFF,
 	STATUS,
 	QUIT
 };
