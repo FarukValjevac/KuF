@@ -83,6 +83,7 @@ void server(unsigned short port)
 			  myComm.writeToClient("Time is up, disconnecting!$", 28);
 			  myComm.forceDisconnect(myComm.getPartnerSocket());
 			  myComm.resetSL();
+			  myComm.processCMD();
 			  myComm.client_connection = false;
 		  }
 	  }

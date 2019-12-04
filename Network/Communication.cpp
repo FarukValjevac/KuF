@@ -284,7 +284,8 @@ bool Communication::ProcessMessage()
 				catch (exception & e) {
 					cout << e.what() << endl;
 
-				}					
+				}	
+				processCMD();
 				WriteToPartner(message.append(" #212$").c_str(), 0);
 				break;
 			}
@@ -296,6 +297,7 @@ bool Communication::ProcessMessage()
 			}
 			case QUIT: {
 				resetSL();
+				processCMD();
 				this->writeToClient(message.append(" #199$").c_str(), strlen(message.append(" #199$").c_str())+1);
 				this->forceDisconnect(getPartnerSocket());
 				client_connection = false;
@@ -416,6 +418,12 @@ void Communication::processCMD() {
 	int channels[48];
 	for (int i = 0; i < 4; i++) {
 		if (this->SLList[i].selected == false) {
+			channels[0] = 1 + i * 24;
+			channels[1] = 0;
+			if (!myDll.SetChannelValue(channels, 1)) {
+				cerr << "error setting values" << endl;
+			}
+			Sleep(10);
 			continue;
 		}
 		channels[0] = 1 + i * 24;
