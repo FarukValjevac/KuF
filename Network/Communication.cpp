@@ -277,7 +277,7 @@ bool Communication::ProcessMessage()
 						}
 						SLList[number-1].selected = false;
 						processCMD();
-						WriteToPartner(message.append(" #103$").c_str(), 0);
+						WriteToPartner(message.append(" #104$").c_str(), 0);
 						break;
 					}
 				}
@@ -291,7 +291,7 @@ bool Communication::ProcessMessage()
 			}
 			case STATUS: {
 					   string str_status = getStatus();
-					   WriteToPartner(message.append(" #104$").c_str(), 0);
+					   WriteToPartner(message.append(" #105$").c_str(), 0);
 					   WriteToPartner(str_status.c_str(), 0);
 					   break;
 			}
@@ -299,6 +299,7 @@ bool Communication::ProcessMessage()
 				resetSL();
 				processCMD();
 				this->writeToClient(message.append(" #199$").c_str(), strlen(message.append(" #199$").c_str())+1);
+				this->writeToClient("Exited system successfully.", 38);
 				this->forceDisconnect(getPartnerSocket());
 				client_connection = false;
 				timeout = NULL;
@@ -455,11 +456,11 @@ const char* Communication::getStatus() {
 		status.append(buf1);
 		
 	}
-	if (status == "STATUS: \n") {
-		return "STATUS: \nNo Spotlights are selected";
+	if (status == "STATUS: 4 Spotlights available\n") {
+		return "STATUS: 4 Spotlights available\nNo Spotlights are selected";
 	}
 	ret_status = status;
-	status = "STATUS: \n";
+	status = "STATUS: 4 Spotlights available\n";
 	return ret_status.c_str() ;
 }
 

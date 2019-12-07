@@ -42,7 +42,7 @@ public:
 // ------------------------------------------------------
 
 #undef SHOWMESSAGE
-#define WELCOMEMESSAGE "DMX-Remote for Spotlights.\nCurrent Version is 1.0.\nChoose your SL #101$"
+#define WELCOMEMESSAGE "DMX-Remote for Spotlights.\nCurrent Version is 1.2.\nChoose your SL #101$"
 // special cases coded in message
 #define NEWCONNECTION (unsigned(-1))
 #define CONNECTIONLOST (unsigned(-2))
@@ -86,7 +86,7 @@ public:
   const char* getStatus();
   bool getRunningStatus();
 
-  std::string status = "STATUS: \n";
+  std::string status = "STATUS: 4 Spotlights available\n";
   std::string ret_status = "";
   time_t timeout = NULL;
   bool client_connection = false;
